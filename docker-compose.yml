@@ -8,7 +8,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./src:/app/src
+      - ./:/app/
+      - /app/node_modules
     environment:
       - DB_HOST=payment_db
       - DB_USER=paymentuser
