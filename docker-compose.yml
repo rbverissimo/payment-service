@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  payment_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./src:/app/src
+    environment:
+      - DB_HOST=payment_db
+      - DB_USER=paymentuser
+      - DB_PASSWORD=paymentpassword
+      - DB_PORT=5432
+      - KAFKA_BROKER=kafka:9092
+    depends_on:
+      - payment_db
+  payment_db:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=paymentuser
+      - POSTGRES_PASSWORD=paymentpassword
+      - POSTGRES_DB=payment_db
+    volumes:
+      - payment_db_data:/var/lib/postgresql/data
+volumes:
+  payment_db_data:
