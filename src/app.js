@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import db from './database.js';
+import kafka from './kafka.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +43,9 @@ async function startService(){
 
         await db.connectDb();
         console.log('PostgreSQL connection successful.');
+
+        await kafka.connectKafka();
+        console.log('Kafka connection successful. ');
 
         app.listen(3000, () => {
             console.log(`A payment service instance is running on port ${PORT}`);
