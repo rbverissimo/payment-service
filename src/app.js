@@ -1,7 +1,10 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import db from './database.js';
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+app.use(bodyParser.json());
 
 app.get('/health', (req, res) => {
     res.status(200).send('Payment service is up and running');
@@ -14,7 +17,7 @@ async function startService(){
         console.log('PostgreSQL connection successful.');
 
         app.listen(3000, () => {
-            console.log('A payment service instance is running on port 3000');
+            console.log(`A payment service instance is running on port ${PORT}`);
         });
         
     } catch (error) {
