@@ -38,8 +38,8 @@ async function connectDb() {
     }
 }
 
-module.exports = {
-    connectDb,
+export default {
     query: (text, params) => pool.query(text, params),
+    connectDb,
     pool
 }
