@@ -33,7 +33,7 @@ async function connectDb() {
       console.log('Payments table successfully created!');
         
     } catch (error) {
-        console.error('Failed to connect to database', err.message);
+        console.error('Failed to connect to database', error.message);
         process.exit(-1);
     }
 }

@@ -31,9 +31,22 @@ app.post('/payments', async (req, res) => {
         const payment = result.rows[0];
         console.log('New payment processed and saved into database: ', payment);
 
+        await kafka.sendMessage(kafka.TOPIC_PAYMENT_PROCESSED, {
+            value: JSON.stringify({
+                paymentId: payment.id,
+                orderId: payment.order_id,
+                amount: payment.amount,
+                transactionId: payment.transaction_id,
+                timestamp: new Date().toISOString()
+            })
+        });
+
         return res.status(202).json({message: 'Payment processed successfully', obj: payment});
     } catch (error) {
-        
+        if(error.code === '23505'){
+            res.status(409).json({message: `Payment for order ${orderId} already exists`});
+        }
+        return res.status(500).json({message: 'Failed to process payment', error: error.message});
     }
 
 });
