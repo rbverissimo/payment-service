@@ -44,7 +44,7 @@ app.post('/payments', async (req, res) => {
         return res.status(202).json({message: 'Payment processed successfully', obj: payment});
     } catch (error) {
         if(error.code === '23505'){
-            res.status(409).json({message: `Payment for order ${orderId} already exists`});
+            return res.status(409).json({message: `Payment for order ${orderId} already exists`});
         }
         return res.status(500).json({message: 'Failed to process payment', error: error.message});
     }

@@ -8,8 +8,8 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 const consumer = kafka.consumer({groupId: 'payment-group'});
 
-export const TOPIC_PAYMENT_PROCESSED = 'payment-processed';
-export const TOPIC_ORDER_CREATED = 'order-created';
+const TOPIC_PAYMENT_PROCESSED = 'payment-processed';
+const TOPIC_ORDER_CREATED = 'order-created';
 
 async function connectKafka(){
     try {
@@ -60,5 +60,6 @@ async function sendMessage(topic, messages){
 
 export default {
     connectKafka,
-    sendMessage
+    sendMessage,
+    TOPIC_PAYMENT_PROCESSED
 }
