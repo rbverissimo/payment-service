@@ -33,7 +33,7 @@ async function connectKafka(){
                if(topic === TOPIC_ORDER_CREATED){
                 try {
                     const orderData = JSON.parse(message.value.toString());
-                    console.log(`Received order-created event for order: ${orderData}`);
+                    console.log(`Received order-created event for order: ${orderData.orderId}`);
                 } catch (error) {
                     console.error(`Error parsing message from order-created event`, error);
                 }
