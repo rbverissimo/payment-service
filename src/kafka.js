@@ -58,6 +58,29 @@ async function sendMessage(topic, messages){
     }
 }
 
+async function startConsumer(topic, groupId, handler){
+    const consumer = kafka.consumer({groupId: groupId});
+    try {
+        await consumer.connect();
+        await consumer.subscribe({topic: topic, fromBeginning: false}); //Avoiding events replay
+
+        await consumer.run({
+            eachMessage: async({topic, partition, message}) => {
+                try{
+                    const payload = JSON.parse(message.value.toString());
+                    console.log(`Received message from topic ${topic}: `, payload);
+                    await handler(payload);
+                } catch (error) {
+                    console.error(`Error processing message from topic ${topic}`, error.message, error);
+                }
+            }
+        });
+        console.log(`Kafka consumer subscribed to topic ${topic} with group ID ${groupId}`);
+    } catch (error) {
+        console.error(`Failed to start Kafka consumer for topic ${topic}: `, error);
+    }
+}
+
 export default {
     connectKafka,
     sendMessage,
