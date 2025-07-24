@@ -11,6 +11,10 @@ app.get('/health', (req, res) => {
     res.status(200).send('Payment service is up and running');
 });
 
+function generateTransactionId(){
+    return `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
 app.post('/payments', async (req, res) => {
     const { orderId, amount } = req.body;
 
@@ -19,17 +23,32 @@ app.post('/payments', async (req, res) => {
     }
 
     try {
-        
-        const status = 'completed';
-        const transaction_id = `txn_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const payment = await processPayment(orderId, amount);
+        if(payment.message && payment.message.includes('already exists')) return res.status(409).json(payment);
 
-        const result = await db.query(
-            'INSERT INTO payments(order_id, amount, status, transaction_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [orderId, amount, status, transaction_id]
-        )
+        return res.status(201).json({message: 'Payment processed successfully', obj: payment});
+    } catch (error) {
+        return res.status(500).json({message: 'Failed to process payment', error: error.message});
+    }
+});
+
+async function processPayment(orderId, amount){
+    try {
+        const existingPayment = await db.query(`SELECT * FROM PAYMENTS WHERE ORDER_ID = $1 ` [orderId]);
+        if(existingPayment.rows.length > 0){
+            console.log(`Payment for order ${orderId} already exists. Skipping.`);
+            return { message: `Payment for order ${orderId} already exists`};
+        }
+
+        const transactionId = generateTransactionId();
+        const status = 'completed';
+        const createdAt = new Date();
+
+        const result = db.query(`INSERT INTO (order_id, amount, status, transaction_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`, 
+            [orderId, amount, status, transactionId, createdAt]);
 
         const payment = result.rows[0];
-        console.log('New payment processed and saved into database: ', payment);
+        console.log('New payment processed and saved into database', payment);
 
         await kafka.sendMessage(kafka.TOPIC_PAYMENT_PROCESSED, {
             value: JSON.stringify({
@@ -41,15 +60,37 @@ app.post('/payments', async (req, res) => {
             })
         });
 
-        return res.status(202).json({message: 'Payment processed successfully', obj: payment});
+        return payment;
     } catch (error) {
-        if(error.code === '23505'){
-            return res.status(409).json({message: `Payment for order ${orderId} already exists`});
+        console.error(`Error processing payment to Order ${orderId}`, error);
+        if(error.code === '23505') {
+            console.warn(`Attemped to create duplicate payment to order ${orderId}`);
+            return { message: `Payment for order ${orderId} already exists`};
         }
-        return res.status(500).json({message: 'Failed to process payment', error: error.message});
+        throw new Error(`Failed to process payment for order ${orderId}: ${error.message}`);
+    } finally {
+        // db.release(); TODO: manage releasing of the connection into pg
     }
+}
 
-});
+async function handleOrderCreatedMessage(orderData){
+
+    if(orderData && orderData.orderId && orderData.total_amount){
+        try {
+            const result = await processPayment(orderData.orderId, orderData.total_amount);
+            if(result.message && result.message.includes('already exists')){
+                console.log(`Payment Service: A payment for Order ID ${orderId} has already been successfully processed.`);
+            } else {
+                console.log(`Payment Service: A payment for OrderID ${orderData.orderId} was successfully processed. `, result);
+            }
+
+        } catch (error) {
+            console.error(`Payment Service: Failed to process payment for Order ID ${orderData.orderId}`);
+        }
+    } else {
+        console.warn(`PaymentService: Received malformed order-created message: `, orderData);
+    }
+}
 
 async function startService(){
     try {
@@ -59,6 +100,8 @@ async function startService(){
 
         await kafka.connectKafka();
         console.log('Kafka connection successful. ');
+
+        await kafka.startConsumer(kafka.TOPIC_ORDER_CREATED, kafka.ORDER_CONSUMER_GROUP_ID, handleOrderCreatedMessage);
 
         app.listen(3000, () => {
             console.log(`A payment service instance is running on port ${PORT}`);
