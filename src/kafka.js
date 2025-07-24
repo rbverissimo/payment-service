@@ -7,6 +7,7 @@ const kafka = new Kafka({
 
 const producer = kafka.producer();
 
+const BROKER_NAME = 'Kafka';
 const TOPIC_PAYMENT_PROCESSED = 'payment-processed';
 const TOPIC_ORDER_CREATED = 'order-created';
 const ORDER_CONSUMER_GROUP_ID = 'payment-service-order-consumer';
@@ -63,5 +64,6 @@ export default {
     startConsumer,
     TOPIC_PAYMENT_PROCESSED,
     TOPIC_ORDER_CREATED,
-    ORDER_CONSUMER_GROUP_ID
+    ORDER_CONSUMER_GROUP_ID,
+    BROKER_NAME
 }
