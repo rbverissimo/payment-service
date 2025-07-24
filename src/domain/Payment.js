@@ -16,7 +16,7 @@ class Payment {
         this.amount = amount;
         this.status = status;
         this.transactionId = transactionId;
-        this.createdAt = createdAt;
+        this.createdAt = createdAt || new Date();
     }
 
 }
