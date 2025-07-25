@@ -41,7 +41,7 @@ async function handleOrderCreatedMessage(orderData){
     if(orderData && orderData.orderId && orderData.total_amount){
         try {
             const result = await paymentService.processPayment(orderData.orderId, orderData.total_amount);
-            if(result.message && result.message.includes('already exists')){
+            if(result.message && result.message.includes('already')){
                 console.log(`Payment Service: A payment for Order ID ${orderId} has already been successfully processed.`);
             } else {
                 console.log(`Payment Service: A payment for OrderID ${orderData.orderId} was successfully processed. `, result);

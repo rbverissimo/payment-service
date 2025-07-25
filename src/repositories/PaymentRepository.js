@@ -33,7 +33,7 @@ class PaymentRepository {
         let client;
         try {
             client = await this.pool.connect();
-            const query = 'SELECT 1 FROM PAYMENTS WHERE ORDER_1 = $1';
+            const query = 'SELECT 1 FROM PAYMENTS WHERE ORDER_ID = $1';
             const res = await client.query(query, [orderId]);
             return res.rows.length > 0;
         } catch (error) {
