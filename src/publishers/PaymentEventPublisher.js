@@ -11,8 +11,8 @@ class PaymentEventPublisher {
     }
 
     /**
-     * 
      * @param {Payment} payment 
+     * @throws {Error} - in case the message broker can't really process the payment
      */
     async publishPaymentProcessed(payment){
         const eventPayload = {
@@ -27,7 +27,8 @@ class PaymentEventPublisher {
             await this.broker.sendMessage(this.broker.TOPIC_PAYMENT_PROCESSED, {value: JSON.stringify(eventPayload)});
             console.log(`PaymentEventPublisher: Payment ${payment.id} processed successfully published into ${this.broker.TOPIC_PAYMENT_PROCESSED} topic using ${this.broker.BROKER_NAME}`);
         } catch (error) {
-            console.error(`PaymentEventPublisher: Publishing Payment ${payment.id} for Order ${payment.orderId} processed into ${this.broker.BROKER_NAME} failed. Known reason: `, error.message);   
+            console.error(`PaymentEventPublisher: Publishing Payment ${payment.id} for Order ${payment.orderId} processed into ${this.broker.BROKER_NAME} failed. Known reason: `, error.message); 
+            throw error;  
         }
     }
 
