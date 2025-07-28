@@ -11,7 +11,7 @@ class Payment {
      * @param {Date|null} data.createdAt 
      */
     constructor({id, orderId, amount, status, transactionId, createdAt}){
-        this.id = id || -1;
+        this.id = id;
         this.orderId = orderId;
         this.amount = amount;
         this.status = status;

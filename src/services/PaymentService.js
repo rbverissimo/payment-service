@@ -43,6 +43,9 @@ class PaymentService {
                 .withTransactionId(transactionId)
                 .withStatus(status)
                 .build();
+
+            
+            console.log('generated a payment to create', paymentToCreate);
             
             const newPayment = await this.paymentRepository.create(paymentToCreate);
             console.log(`PaymentService: New payment saved into database with ID ${newPayment.id}, transaction number ${newPayment.transactionId}`);
