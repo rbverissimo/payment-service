@@ -10,8 +10,8 @@ class PaymentBuilder {
         return this;
     }
 
-    withOrderId(){
-        this.data.orderId = id;
+    withOrderId(orderId){
+        this.data.orderId = orderId;
         return this;
     }
 
